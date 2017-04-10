@@ -1,126 +1,87 @@
 <?php
-// api 
 include('./httpful.phar');
-
-/*
-# The list of available API method names:
-# (16/22)
-#
-# [-] activateDeactivateService
-# [+] callMeBack
-# [+] changeLanguage
-# [+] changeSuperPassword
-# [-] changeTariff
-# [+] getAvailableTariffs
-# [+] getBalances
-# [+] getExpensesSummary
-# [+] getLanguages
-# [+] getPaymentsHistory
-# [-] getSeparateBalances
-# [+] getServices
-# [+] getSummaryData
-# [+] getToken
-# [+] getUIProperties
-# [-] offerAction
-# [+] refillBalanceByScratchCard
-# [-] removeFromPreProcessing
-# [+] requestBalanceTransfer
-# [+] signIn
-# [+] signOut
-# [-] transferBalance
-*/
-
-$debug = 1;
 $RESPONSE_CODE = [
-    '0' => 'Успешная авторизация',
-    '-1' => 'Время ожидания истекло',
-    '-2' => 'Внутренняя ошибка',
-    '-3' => 'Неправильный список параметров',
-    '-4' => 'Авторизация не удалась',
-    '-5' => 'Код доступа истёк',
-    '-6' => 'Авторизация не удалась',
-    '-7' => 'СуперПароль неверный',
-    '-8' => 'Неверный ID абонента',
-    '-9' => 'Только для абонентов предоплаты',
-    '-10' => 'СуперПароль заблокирован. Закажите новый.',
-    '-11' => 'Номер не существует.',
-    '-12' => 'Токен истёк.',
-    '-13' => 'Ошибка смены тарифного плана.',
-    '-14' => 'Ошибка активации услуги.',
-    '-15' => 'Ошибка активации акции.',
-    '-16' => 'Произошла ошибка при получении тарифов.',
-    '-17' => 'Произошла ошибка при получении услуг.',
-    '-18' => 'REMOVE_SERVICE_FROM_PREPROCESSING_FAILED',
-    '-19' => 'Логика заблокирована (чё???)',
-    '-20' => 'Слишком много запросов. Пажжи.',
-    '-40' => 'PAYMENTS_OR_EXPENSES_MISSED',
-    '-21474833648' => 'Внутренняя ошибка приложения',
+    '0' => 'Success',
+    '-1' => 'Session timeout',
+    '-2' => 'Internal Error',
+    '-3' => 'Invalid parameter list',
+    '-4' => 'Authorization failed',
+    '-5' => 'Token expired',
+    '-6' => 'Autorization failed (wrong link)',
+    '-7' => 'Wrong Superpassword',
+    '-8' => 'Wrong number',
+    '-9' => 'Only for prepaid customers',
+    '-10' => 'Superpassword locked. Order new superpassword',
+    '-11' => 'Number doesnt exists',
+    '-12' => 'Session expired',
+    '-13' => 'Tariff plan changing error.',
+    '-14' => 'Service activating error',
+    '-15' => 'Order activation error',
+    '-16' => 'Failed to get the list of tariffs',
+    '-17' => 'Failed to get the list of services',
+    '-18' => 'Remove service from preprocessing failed',
+    '-19' => 'Logic is blocked',
+    '-20' => 'Too many requests',
+    '-40' => 'Payments of expenses missed',
+    '-21474833648' => 'Internal application error',
 ];
 
+	// генерирует готовый запрос и возвращает ответ от api.lifecell.com.ua/mobile/{methodName}
+function request($method, $params){ 
 
-if ($debug) {}
-
-
-
-
-function request($method, $params){ // создаёт запрос, принимает метод и параметры запроса массивом (номер, токен и тп)
-
-$params = array_merge(["accessKeyCode" => "7"], $params); // объединение известных данных с полученными
+	// объединение известных данных с полученными
+$params = array_merge(["accessKeyCode" => "7"], $params); 
 
 $built_query = urldecode(http_build_query($params));
 $params_in_url = $method."?".$built_query."&signature=";
+	
+	// уникальная подпись каждого запроса
 $signed_url = hash_hmac(sha1, $params_in_url, "E6j_$4UnR_)0b", true);
 $signature = base64_encode($signed_url);
-$url = "https://api.life.com.ua/mobile/" . $api_url . $params_in_url . $signature;
+	
+$url = urlencode("https://api.life.com.ua/mobile/" . $api_url . $params_in_url . $signature);
   
 $response = \Httpful\Request::get($url)
     ->expectsXml()
     ->send();
 
-
-echo "DEBUG: valid url: ".$url."<br><br>";
+	// Раскоментировать для вывода текущего api-URL
+// echo "Valid url: ".$url."<br><br>";
 
 return $response;
 }
 
 
-
-function signIn($msisdn, $superPassword){ // функция авторизации. В дальнейшем будет использоваться автоматически в каждом запросе
+function signIn($msisdn, $superPassword){ 
 	global $RESPONSE_CODE;
-
-
-    $data = request("signIn",["msisdn" => $msisdn, "superPassword" => $superPassword]);
+    	$data = request("signIn",["msisdn" => $msisdn, "superPassword" => $superPassword]);
     return $data;
 }
 
+// methods
 
-
-// методы -------------------------------------------------
-
-function getSummaryData() {  // основная информация
-
-
+function getSummaryData() {
 $data = request("getSummaryData",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$token"]);   
 if (($data->body->responseCode)==("-12")) {cleanCookie();}
 return $data;
 }
 
-function getBalances() { // балансы
+function getBalances() {
 $data = request("getBalances",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$token"]);   
 return $data;
 }
 
-function callMeBack($msisdnB) { // запрос о перезвоне
+function callMeBack($msisdnB) {
 $data = request("getBalances",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "msisdnB" => "$msisdnB", "token" => "$token"]);   
 return $data;
 }
 
-function requestBalanceTransfer($msisdnB) { // запрос о переводе баланса
+function requestBalanceTransfer($msisdnB) {
 $data = request("requestBalanceTransfer",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "msisdnB" => "$msisdnB", "token" => "$token"]);
 return $data;
 }
 
-function changeLanguage($newLanguageId) { // смена языка
+function changeLanguage($newLanguageId) {
 $data = request("changeLanguage",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "newLanguageId" => "$newLanguageId", "token" => "$token"]);   
 return $data;
 }
@@ -156,12 +117,12 @@ $data = request("getServices",["msisdn" => $msisdn, "languageId" => "ru", "osTyp
 return $data;
 }
 
-function getToken() { // получение токена без участия суперпароля. Пока применения не нашёл, но можно использовать, сохраняя СП в БД. Не очень очется :)
+function getToken() {
 $data = request("getToken",["msisdn" => $msisdn, "subId" => "$subId"]);   
 return $data;
 }
 
-function getUIProperties($last_date_update){ // яя хз зачем это
+function getUIProperties($last_date_update){
 $data = request("getUIProperties",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "lastDateUpdate" => "$last_date_update" ,"token" => "$token"]);
 return $data;
 }
@@ -176,25 +137,12 @@ $data = request("refillBalanceByScratchCard",["msisdn" => $msisdn, "languageId" 
 return $data;
 }
 
-function removeFromPreProcessing($serviceCode){ // походу, отключить услугу из ожидания оплаты
+function removeFromPreProcessing($serviceCode){
 $data = request("refillBalanceByScratchCard",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "serviceCode" => "$serviceCode" ,"token" => "$token"]);   
 return $data;
 }
 
-/*
-function getSeparateBalances(){  // not working
-
-
-$data = request("getSeparateBalances",["msisdn" => $msisdn, "languageId" => "ru", "osType" => "ANDROID", "balanceCode" => "Line_Main", "token" => "$token"]);   
-
-return $data;
-}
-*/
-
-
 function signOut(){
 $data = request("getServices",["msisdn" => $msisdn, "subId" => "$subId"]);   
 }
-
-
 ?>
