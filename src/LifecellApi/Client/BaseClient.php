@@ -1,6 +1,6 @@
 <?php
 
-namespace LifecellApi;
+namespace LifecellApi\Client;
 
 use GuzzleHttp\Client;
 
@@ -101,7 +101,7 @@ class BaseClient
      */
     private function toArray(\Psr\Http\Message\StreamInterface $data)
     {
-        return json_decode(json_encode(simplexml_load_string($data)));
+        return json_decode(json_encode(simplexml_load_string($data)), true);
     }
 
 }
