@@ -3,6 +3,7 @@
 namespace LifecellApi\Client;
 
 use GuzzleHttp\Client;
+use Sabre\Xml\Service;
 
 class BaseClient
 {
@@ -12,6 +13,25 @@ class BaseClient
     private const API_KEY = 'E6j_$4UnR_)0b';
     private $urlApi = 'https://api.life.com.ua/mobile/';
 
+    protected $msisdn, $token;
+
+    protected $debug = false;
+
+    /**
+     * Show generated link
+     *
+     * @param bool $debug
+     */
+    public function debug(bool $debug)
+    {
+        $this->debug = $debug;
+    }
+
+    public function __construct(string $msisdn)
+    {
+        $this->msisdn = $msisdn;
+    }
+
     /**
      * Send request and return array
      *
@@ -19,11 +39,11 @@ class BaseClient
      * @param array $options
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function request(string $method, array $options = [])
+    public function request(string $method, array $options = [], string $token)
     {
-        if (!empty($options)) {
-            $options = $this->mergeOptions($options);
-        }
+
+        $this->token = $token;
+        $options = $this->mergeOptions($options);
 
         $serviceQuery = $this->buildOptions($options);
         $query = $this->buildQuery($method, $serviceQuery);
@@ -41,11 +61,15 @@ class BaseClient
      */
     private function mergeOptions(array $options)
     {
+
         return array_merge(
             $this->serviceOptions,
             $options,
             [
-                'languageId' => $this->language
+                'msisdn' => $this->msisdn,
+                'languageId' => $this->language,
+                'osType' => 'ANDROID',
+                'token' => $this->token,
             ]
         );
     }
@@ -81,6 +105,11 @@ class BaseClient
     {
         $signedUrl = hash_hmac("sha1", $query, self::API_KEY, true);
         $signature = $this->getSignature($signedUrl);
+
+        if ($this->debug) {
+            echo '[DEBUG] Api Link: ' . ($this->urlApi . $query . urlencode($signature));
+        }
+
         return $this->urlApi . $query . urlencode($signature);
     }
 
@@ -101,7 +130,12 @@ class BaseClient
      */
     private function toArray(\Psr\Http\Message\StreamInterface $data)
     {
-        return json_decode(json_encode(simplexml_load_string($data)), true);
-    }
+        // return json_decode(json_encode(simplexml_load_string($data)), true);
 
+        $data = simplexml_load_string($data);
+
+        $data = $this->parseXML($data);
+        var_dump($data);
+        return $data;
+    }
 }

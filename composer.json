@@ -3,7 +3,8 @@
   "description": "Unofficial (education) PHP library for lifecell API",
   "type": "library",
   "require": {
-    "guzzlehttp/guzzle": "^6.3@dev"
+    "guzzlehttp/guzzle": "^6.3@dev",
+    "sabre/xml": "dev-master"
   },
   "license": "MIT",
   "authors": [

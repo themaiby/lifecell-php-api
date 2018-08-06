@@ -15,12 +15,19 @@ class Model
     protected $mappingClasses = [];
     protected $propNameMap = [];
 
-
+    /**
+     * Model constructor.
+     * @param array $data
+     */
     public function __construct($data = [])
     {
         $this->fromArray($data);
     }
 
+    /**
+     * @param array $data
+     * @return $this
+     */
     public function fromArray(array $data)
     {
         foreach ($data as $key => $val) {
