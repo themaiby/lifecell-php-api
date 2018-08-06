@@ -1,16 +1,22 @@
 <?php
-class Client {
+
+class ClientOld
+{
     private $msisdn, $superPassword, $token, $subId;
     private $api_url = 'https://api.life.com.ua/mobile/';
     private $RESPONSE_CODE = array('0' => 'Success', '-1' => 'Session timeout', '-2' => 'Internal Error', '-3' => 'Invalid parameter list', '-4' => 'Authorization failed', '-5' => 'Token expired', '-6' => 'Autorization failed (wrong link)', '-7' => 'Wrong Superpassword', '-8' => 'Wrong number', '-9' => 'Only for prepaid customers', '-10' => 'Superpassword locked. Order new superpassword', '-11' => 'Number doesn\'t exists', '-12' => 'Session expired', '-13' => 'Tariff plan changing error.', '-14' => 'Service activating error', '-15' => 'Order activation error', '-16' => 'Failed to get the list of tariffs', '-17' => 'Failed to get the list of services', '-18' => 'Remove service from preprocessing failed', '-19' => 'Logic is blocked', '-20' => 'Too many requests', '-40' => 'Payments of expenses missed', '-21474833648' => 'Internal application error',);
-    public function __construct($msisdn, $superPassword) {
+
+    public function __construct($msisdn, $superPassword)
+    {
         $this->msisdn = $msisdn;
         $this->superPassword = $superPassword;
         $data = $this->signIn();
         $this->token = $data->token;
         $this->subId = $data->subId;
     }
-    public function request($method, $params) {
+
+    public function request($method, $params)
+    {
         /* merging knows data with dynamic */
         $params = array_merge(["accessKeyCode" => "7"], $params);
         $built_query = urldecode(http_build_query($params));
@@ -38,84 +44,123 @@ class Client {
             return (['Error' => $this->RESPONSE_CODE[$code]]);
         }
     }
-    private function signIn() {
+
+    private function signIn()
+    {
         $data = $this->request("signIn", ["msisdn" => $this->msisdn, "superPassword" => $this->superPassword]);
         if ($data["Error"] == NULL) {
             return $data;
         }
         return json_encode($data);
     }
-    public function getToken() {
+
+    public function getToken()
+    {
         return $this->token;
     }
-    public function getSubId() {
+
+    public function getSubId()
+    {
         return $this->subId;
     }
-    public function getSummaryData() {
+
+    public function getSummaryData()
+    {
         $data = $this->request("getSummaryData", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$this->token"]);
         return $data;
     }
-    public function getBalances() {
+
+    public function getBalances()
+    {
         $data = $this->request("getBalances", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$this->token"]);
         return $data;
     }
-    public function callMeBack($msisdnB) {
+
+    public function callMeBack($msisdnB)
+    {
         $data = $this->request("getBalances", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "msisdnB" => "$msisdnB", "token" => "$this->token"]);
         return $data;
     }
-    public function requestBalanceTransfer($msisdnB) {
+
+    public function requestBalanceTransfer($msisdnB)
+    {
         $data = $this->request("requestBalanceTransfer", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "msisdnB" => "$msisdnB", "token" => "$this->token"]);
         return $data;
     }
-    public function changeLanguage($newLanguageId) {
+
+    public function changeLanguage($newLanguageId)
+    {
         $data = $this->request("changeLanguage", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "newLanguageId" => "$newLanguageId", "token" => "$this->token"]);
         return $data;
     }
-    public function changeSuperPassword($old_password, $new_password) {
+
+    public function changeSuperPassword($old_password, $new_password)
+    {
         $data = $this->request("changeSuperPassword", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "oldPassword" => "$old_password", "newPassword" => "$new_password", "token" => "$this->token"]);
         return $data;
     }
-    public function getAvailableTariffs() {
+
+    public function getAvailableTariffs()
+    {
         $data = $this->request("getAvailableTariffs", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$this->token"]);
         return $data;
     }
-    public function getExpensesSummary($period) {
+
+    public function getExpensesSummary($period)
+    {
         $data = $this->request("getExpensesSummary", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "monthPeriod" => "$period", "token" => "$this->token"]);
         return $data;
     }
-    public function getLanguages() {
+
+    public function getLanguages()
+    {
         $data = $this->request("getLanguages", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$this->token"]);
         return $data;
     }
-    public function getPaymentsHistory($period) {
+
+    public function getPaymentsHistory($period)
+    {
         $data = $this->request("getPaymentsHistory", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "monthPeriod" => "$period", "token" => "$this->token"]);
         return $data;
     }
-    public function getServices() {
+
+    public function getServices()
+    {
         $data = $this->request("getServices", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "token" => "$this->token"]);
         return $data;
     }
-    public function getUIProperties($last_date_update) {
+
+    public function getUIProperties($last_date_update)
+    {
         $data = $this->request("getUIProperties", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "lastDateUpdate" => "$last_date_update", "token" => "$this->token"]);
         return $data;
     }
-    public function offerAction($offerCode) {
+
+    public function offerAction($offerCode)
+    {
         $data = $this->request("getUIProperties", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "offerCode" => "$offerCode", "token" => "$this->token"]);
         return $data;
     }
-    public function refillBalanceByScratchCard($secretCode) {
+
+    public function refillBalanceByScratchCard($secretCode)
+    {
         $data = $this->request("refillBalanceByScratchCard", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "secretCode" => "$secretCode", "token" => "$this->token"]);
         return $data;
     }
-    public function removeFromPreProcessing($serviceCode) {
+
+    public function removeFromPreProcessing($serviceCode)
+    {
         $data = $this->request("refillBalanceByScratchCard", ["msisdn" => $this->msisdn, "languageId" => "ru", "osType" => "ANDROID", "serviceCode" => "$serviceCode", "token" => "$this->token"]);
         return $data;
     }
-    public function signOut() {
+
+    public function signOut()
+    {
         $data = $this->request("getServices", ["msisdn" => $this->msisdn, "subId" => "$subId"]);
     }
 }
-$client = new Client('380930000000', '123456');
+
+$client = new ClientOld('380930000000', '123456');
 header('Content-type: Application/json');
 
 // ##EXAMPLE
